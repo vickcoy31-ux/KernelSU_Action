@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prepare the defconfig and compile the kernel.
 
-set -euo pipefail
+set -Eeuo pipefail
 trap 'echo "::error::build.sh failed at line ${LINENO}: ${BASH_COMMAND}" >&2; exit 1' ERR
 # shellcheck source=scripts/lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
