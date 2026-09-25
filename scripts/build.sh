@@ -21,11 +21,22 @@ DEFCONFIG_PATH="${KERNEL_DIR}/arch/${ARCH}/configs/${KERNEL_CONFIG}"
 
 prepare_defconfig() {
 	group "Preparing defconfig"
-	[ -f "$DEFCONFIG_PATH" ] \
-		|| die "defconfig not found: arch/${ARCH}/configs/${KERNEL_CONFIG}
-       Available: $(ls "${KERNEL_DIR}/arch/${ARCH}/configs/" | head -20 | tr '\n' ' ')"
-
+	set -x
+	info "kernel dir : ${KERNEL_DIR}"
+	info "defconfig  : ${DEFCONFIG_PATH}"
+	if [ ! -d "${KERNEL_DIR}/arch/${ARCH}/configs" ]; then
+		warn "configs directory is missing: ${KERNEL_DIR}/arch/${ARCH}/configs"
+		warn "contents of ${KERNEL_DIR}/arch/${ARCH}:"
+		ls -la "${KERNEL_DIR}/arch/${ARCH}" 2>&1 | head -30 || true
+		die "defconfig directory not found; is the kernel source cloned?"
+	fi
+	if [ ! -f "$DEFCONFIG_PATH" ]; then
+		warn "defconfig file is missing: ${DEFCONFIG_PATH}"
+		ls -la "${KERNEL_DIR}/arch/${ARCH}/configs" 2>&1 | head -40 || true
+		die "defconfig not found: arch/${ARCH}/configs/${KERNEL_CONFIG}"
+	fi
 	cp "$DEFCONFIG_PATH" "${WORKSPACE}/defconfig.orig"
+	set +x
 
 	local kver
 	kver=$(kernel_version "$KERNEL_DIR" || echo "0.0")
