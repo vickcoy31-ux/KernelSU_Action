@@ -2,6 +2,7 @@
 # Prepare the defconfig and compile the kernel.
 
 set -euo pipefail
+trap 'echo "::error::build.sh failed at line ${LINENO}: ${BASH_COMMAND}" >&2; exit 1' ERR
 # shellcheck source=scripts/lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 # shellcheck source=scripts/kernelsu.sh
@@ -16,10 +17,24 @@ OUT="${KERNEL_DIR}/out"
 
 DEFCONFIG_PATH="${KERNEL_DIR}/arch/${ARCH}/configs/${KERNEL_CONFIG}"
 
+# Samsung/MediaTek vendor tree prep: the tree expects setup/kernel and
+# setup/vendor as siblings of the kernel dir (legacy workflow parity).
+prep_vendor_tree() {
+	local root; root=$(dirname "$KERNEL_DIR")
+	if [ -d "${KERNEL_DIR}/setup/kernel" ]; then
+		info "copying setup/kernel and setup/vendor to ${root}"
+		rm -rf "${root}/kernel" "${root}/vendor" 2>/dev/null || true
+		cp -r "${KERNEL_DIR}/setup/kernel" "${root}/kernel"
+		[ -d "${KERNEL_DIR}/setup/vendor" ] && cp -r "${KERNEL_DIR}/setup/vendor" "${root}/vendor"
+		[ -f "${KERNEL_DIR}/build.sh" ] && cp "${KERNEL_DIR}/build.sh" "${root}/build.sh"
+	fi
+}
+
 # ------------------------------------------------------------- defconfig ---
 
 prepare_defconfig() {
 	group "Preparing defconfig"
+	prep_vendor_tree
 	[ -f "$DEFCONFIG_PATH" ] \
 		|| die "defconfig not found: arch/${ARCH}/configs/${KERNEL_CONFIG}
        Available: $(ls "${KERNEL_DIR}/arch/${ARCH}/configs/" | head -20 | tr '\n' ' ')"
