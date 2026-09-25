@@ -115,6 +115,14 @@ ksu_install() {
 		warn "Pin KSU_REF (e.g. a tag) if you need reproducible builds."
 	fi
 
+	# The kernel tree may carry a stale KernelSU/ gitlink (empty dir, no .gitmodules).
+	# A pre-existing empty dir makes setup.sh skip cloning and never create the
+	# drivers/kernelsu symlink -> hard failure. Remove it so setup clones fresh.
+	if [ -d "${KERNEL_DIR}/KernelSU" ] && [ ! -f "${KERNEL_DIR}/KernelSU/kernel/setup.sh" ]; then
+		info "removing stale empty KernelSU/ directory (broken gitlink) from ${KERNEL_DIR}/KernelSU"
+		rm -rf "${KERNEL_DIR}/KernelSU"
+	fi
+
 	# Run the variant's own installer.
 	local setup_url="https://raw.githubusercontent.com/${repo#https://github.com/}/${setup_ref}/kernel/setup.sh"
 	info "running ${setup_url}"
