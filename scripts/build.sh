@@ -26,7 +26,7 @@ prep_vendor_tree() {
 		rm -rf "${root}/kernel" "${root}/vendor" 2>/dev/null || true
 		cp -r "${KERNEL_DIR}/setup/kernel" "${root}/kernel"
 		[ -d "${KERNEL_DIR}/setup/vendor" ] && cp -r "${KERNEL_DIR}/setup/vendor" "${root}/vendor"
-		[ -f "${KERNEL_DIR}/build.sh" ] && cp "${KERNEL_DIR}/build.sh" "${root}/build.sh"
+		[ -f "${KERNEL_DIR}/build.sh" ] && cp "${KERNEL_DIR}/build.sh" "${root}/build.sh" || true
 	fi
 }
 
